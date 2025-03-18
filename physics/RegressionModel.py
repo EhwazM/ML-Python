@@ -102,4 +102,61 @@ class DGRegression:
             if (pacience_counter >= self.pacience):
                 print(f"Se detuvo por convergencia por detención anticipada en la iteración {epoch + 1}")
                 break
+class Ridge():
+    def __init__(self, alpha = 0.1):
+        self.alpha = alpha
+        self.theta = None
+        self.intercept = None
+        self.coef = None
+
+    def fit(self, x, y):
+        m, n = x.shape
+        x_b = np.c_[np.ones((m,1)), x]
+        I = np.identity(n+1)
+        self.theta = np.linalg.inv(x_b.T.dot(x_b) + self.alpha*I).dot(x_b.T).dot(y)
+        self.intercept = self.theta[0]
+        self.coef = self.theta[1:]
+
+    def predict(self, x):
+        m, n = x.shape
+        x_b = np.c_[np.ones((m,1)), x]
+        y_pred = x_b.dot(self.theta)
+        return y_pred
+
+class Lasso():
+    def __init__(self, alpha = 0.1, epochs = 1000, tol = 1e-3):
+        self.alpha = alpha
+        self.epochs = epochs
+        self.tol = tol
+        self.theta = None
+        self.intercept = None
+        self.coef = None
+
+    def fit(self, x, y):
+        m, n = x.shape
+        x_b = np.c_[np.ones((m,1)), x]
+        self.theta = np.zeros((n+1,1))
         
+        # for epoch in range(self.epochs):
+        theta_p = self.theta.copy()
+
+        for i in range(n):
+            if i == 0:
+                gra = 2*x_b[:,0].dot(x_b.dot(self.theta) - y)
+
+            else:
+                gra = 2*x_b[:, i].dot(x_b.dot(self.theta) - y + self.alpha*np.sign(self.theta[i]))
+
+            self.theta[i] -= self.alpha*gra
+            
+        # if(np.linalg.norm(self.theta - theta_p) < self.tol):
+        #     break
+                
+        self.intercept = self.theta[0]
+        self.coef = self.theta[1:]
+
+    def predict(self, x):
+        m, n = x.shape
+        x_b = np.c_[np.ones((m,1)), x]
+        y_pred = x_b.dot(self.theta)
+        return y_pred
